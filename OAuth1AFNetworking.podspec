@@ -133,6 +133,6 @@ s.source       = { :git => "https://github.com/rapinto/OAuth1AFNetworking.git"}
   # s.requires_arc = true
 
   # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-  s.dependency "AFNetworking", "~> 2.5"
+  s.ios.dependency "AFNetworking", "~> 2.5"
 
 end
