@@ -27,7 +27,7 @@
 
 
 
-#import <AFNetworking/AFHTTPRequestOperationManager.h>
+#import "AFHTTPRequestOperationManager.h"
 
 
 

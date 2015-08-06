@@ -118,9 +118,9 @@ s.source       = { :git => "https://github.com/rapinto/OAuth1AFNetworking.git"}
   #
 
   # s.framework  = "SomeFramework"
-  # s.frameworks = "SomeFramework", "AnotherFramework"
+  s.frameworks = "Foundation"
 
-  # s.library   = "iconv"
+  s.library   = "CommonCrypto"
   # s.libraries = "iconv", "xml2"
 
 
