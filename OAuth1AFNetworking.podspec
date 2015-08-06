@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "1.0.9"
+  s.version      = "1.0.10"
   s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/rapinto/OAuth1AFNetworking.git", :tag => "1.0.9" }
+  s.source       = { :git => "https://github.com/rapinto/OAuth1AFNetworking.git", :tag => "1.0.10" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -117,9 +117,9 @@ Pod::Spec.new do |s|
   #
 
   # s.framework  = "SomeFramework"
-  s.frameworks = "Foundation", "CommonCrypto"
+  s.frameworks = "Foundation"
 
-#s.library   = "commonCrypto"
+  s.library   = "commonCrypto"
   # s.libraries = "iconv", "xml2"
 
 
