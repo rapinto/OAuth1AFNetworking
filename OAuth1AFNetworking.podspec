@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "1.0.8"
+  s.version      = "1.0.9"
   s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
@@ -79,7 +79,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/rapinto/OAuth1AFNetworking.git", :tag => "1.0.8" }
+  s.source       = { :git => "https://github.com/rapinto/OAuth1AFNetworking.git", :tag => "1.0.9" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -129,7 +129,7 @@ Pod::Spec.new do |s|
   #  where they will only apply to your library. If you depend on other Podspecs
   #  you can include multiple dependencies to ensure it works.
 
-  # s.requires_arc = true
+  s.requires_arc = true
 
   # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
   s.dependency "AFNetworking", "~> 2.5"
