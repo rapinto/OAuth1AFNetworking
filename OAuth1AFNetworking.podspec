@@ -119,7 +119,7 @@ Pod::Spec.new do |s|
   # s.framework  = "SomeFramework"
   s.frameworks = "Foundation"
 
-  s.library   = "CommonCrypto"
+  s.library   = "commonCrypto.dylib"
   # s.libraries = "iconv", "xml2"
 
 
