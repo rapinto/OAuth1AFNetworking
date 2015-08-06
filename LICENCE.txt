@@ -1,6 +1,6 @@
 OAuth1AFNetworking
 
-Version 1.0.11, July 24th, 2015
+Version 1.0.12, July 24th, 2015
 
 Copyright (C) 2015 Raphaël Pinto
 

@@ -31,7 +31,7 @@
 #import "AFOAuth1Token.h"
 #import "AFHTTPRequestOperation.h"
 #import "QueryStringPair.h"
-#import <CommonCrypto/CommonHMAC.h>
+#import <CommonCrypto/CommonCrypto.h>
 #import "Utils.h"
 
 
