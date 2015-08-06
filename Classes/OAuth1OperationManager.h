@@ -27,7 +27,8 @@
 
 
 
-#import "AFHTTPRequestOperationManager.h"
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
+
 
 
 typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
