@@ -51,6 +51,11 @@ typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
 @property (nonatomic, assign) NSStringEncoding stringEncoding;
 
 
+
++ (OAuth1OperationManager*)sharedInstance;
+
+
+
 - (id)initWithBaseURL:(NSURL *)url
                   key:(NSString *)clientID
                secret:(NSString *)secret;

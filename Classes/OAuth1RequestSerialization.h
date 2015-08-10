@@ -1,5 +1,5 @@
 //
-//  RPRequestSerialization.h
+//  OAuth1RequestSerialization.h
 //
 //
 //  Created by Raphaël Pinto on 06/08/2015.
@@ -27,10 +27,12 @@
 
 
 
-#import "AFURLConnectionOperation.h"
+#import "AFURLRequestSerialization.h"
 
 
 
-@interface RPRequestSerialization : AFHTTPRequestSerializer
+@interface OAuth1RequestSerialization : AFHTTPRequestSerializer
+
+
 
 @end

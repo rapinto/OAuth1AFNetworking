@@ -1,5 +1,5 @@
 //
-//  RPRequestSerialization.m
+//  OAuth1RequestSerialization.m
 //
 //
 //  Created by Raphaël Pinto on 06/08/2015.
@@ -27,12 +27,12 @@
 
 
 
-#import "RPRequestSerialization.h"
-#import "RPHTTPOperationManager.h"
+#import "OAuth1RequestSerialization.h"
+#import "OAuth1OperationManager.h"
 
 
 
-@implementation RPRequestSerialization
+@implementation OAuth1RequestSerialization
 
 
 
@@ -46,19 +46,17 @@
                                 parameters:(id)parameters
                                      error:(NSError *__autoreleasing *)error
 {
-    NSMutableURLRequest* lMutableRequest = [super requestWithMethod:method URLString:URLString parameters:parameters error:error];
+    NSMutableURLRequest* lMutableRequest = [super requestWithMethod:method
+                                                          URLString:URLString
+                                                         parameters:parameters
+                                                              error:error];
     
-    RPHTTPOperationManager* lOperationManager = [RPHTTPOperationManager sharedInstance];
     
-    if ([lOperationManager isKindOfClass:[OAuth1OperationManager class]])
-    {
-        OAuth1OperationManager* lOAuth1Manager = (OAuth1OperationManager*)lOperationManager;
-        
-        NSString* oAuthStr = [lOAuth1Manager authorizationHeaderForMethod:method
-                                                                     path:URLString
-                                                               parameters:parameters];
-        [lMutableRequest setValue:oAuthStr forHTTPHeaderField:@"Authorization"];
-    }
+    NSString* oAuthStr = [[OAuth1OperationManager sharedInstance] authorizationHeaderForMethod:method
+                                                                                          path:URLString
+                                                                                    parameters:parameters];
+    [lMutableRequest setValue:oAuthStr forHTTPHeaderField:@"Authorization"];
+
     
     return lMutableRequest;
 }
@@ -77,18 +75,11 @@
                                                        constructingBodyWithBlock:block
                                                                            error:error];
     
-    RPHTTPOperationManager* lOperationManager = [RPHTTPOperationManager sharedInstance];
-    
-    if ([lOperationManager isKindOfClass:[OAuth1OperationManager class]])
-    {
-        OAuth1OperationManager* lOAuth1Manager = (OAuth1OperationManager*)lOperationManager;
-        
-        NSString* oAuthStr = [lOAuth1Manager authorizationHeaderForMethod:method
-                                                                     path:URLString
-                                                               parameters:parameters];
+    NSString* oAuthStr = [[OAuth1OperationManager sharedInstance] authorizationHeaderForMethod:method
+                                                                                          path:URLString
+                                                                                    parameters:parameters];
         [lMutableRequest setValue:oAuthStr forHTTPHeaderField:@"Authorization"];
-        
-    }
+    
     
     return lMutableRequest;
 }

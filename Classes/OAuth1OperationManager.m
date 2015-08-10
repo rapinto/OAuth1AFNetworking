@@ -87,6 +87,29 @@ static NSString * AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(NS
 
 
 #pragma mark -
+#pragma mark Singleton Methods
+
+
+
+static OAuth1OperationManager* _sharedInstance = nil;
+static dispatch_once_t onceToken = 0;
+
+
+
+
++ (OAuth1OperationManager*)sharedInstance
+{
+    static OAuth1OperationManager *sharedInstance = nil;
+    
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[[self class] alloc] init];
+    });
+    return sharedInstance;
+}
+
+
+
+#pragma mark -
 #pragma mark Object Life Cycle Methods
 
 
