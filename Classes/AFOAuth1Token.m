@@ -48,7 +48,7 @@ static NSDictionary * AFParametersFromQueryString(NSString *queryString) {
             [parameterScanner scanString:@"&" intoString:NULL];
             
             if (name && value) {
-                parameters[[name stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding]] = [value stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                parameters[[name stringByRemovingPercentEncoding]] = [value stringByRemovingPercentEncoding];
             }
         }
     }

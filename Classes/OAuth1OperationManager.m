@@ -71,7 +71,7 @@ static NSString * AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(NS
     static NSString * const kAFCharactersToBeEscaped = @":/?&=;+!@#$()',*";
     static NSString * const kAFCharactersToLeaveUnescaped = @".";
     
-	return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)string, (__bridge CFStringRef)kAFCharactersToLeaveUnescaped, (__bridge CFStringRef)kAFCharactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding));
+    return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)string, (__bridge CFStringRef)kAFCharactersToLeaveUnescaped, (__bridge CFStringRef)kAFCharactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding));
 }
 
 
@@ -187,7 +187,7 @@ NSArray * QueryStringPairsFromKeyAndValue(NSString *key, id value) {
 
 NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _HeaderParameters, NSString *consumerSecret, NSString *tokenSecret, NSStringEncoding stringEncoding) {
     NSString *secret = tokenSecret ? tokenSecret : @"";
-        
+    
     NSString *secretString = [NSString stringWithFormat:@"%@&%@", AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(consumerSecret, stringEncoding), AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(secret, stringEncoding)];
     NSData *secretStringData = [secretString dataUsingEncoding:stringEncoding];
     
@@ -278,7 +278,7 @@ NSString * AFQueryStringFromParametersWithEncoding(NSDictionary *parameters, NSS
     [mutableParameters addEntriesFromDictionary:mutableAuthorizationParameters];
     mutableAuthorizationParameters[@"oauth_signature"] = [self OAuthSignatureForMethod:method path:path parameters:mutableParameters token:self.accessToken];
     
-    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(mutableAuthorizationParameters, self.stringEncoding) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];  
+    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(mutableAuthorizationParameters, self.stringEncoding) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
     
     NSMutableArray *mutableComponents = [NSMutableArray array];
     for (NSString *component in sortedComponents) {
