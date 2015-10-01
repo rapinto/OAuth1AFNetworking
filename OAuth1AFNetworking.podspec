@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "1.0.16"
+  s.version      = "1.0.17"
   s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
@@ -68,10 +68,6 @@ Pod::Spec.new do |s|
     s.watchos.deployment_target = "2.0"
     s.ios.deployment_target = "7.0"
 
-  #  When using multiple platforms
-  # s.ios.deployment_target = "5.0"
-  # s.osx.deployment_target = "10.7"
-  # s.watchos.deployment_target = "2.0"
 
 
   # ――― Source Location ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -118,13 +114,9 @@ Pod::Spec.new do |s|
   #
 
   # s.framework  = "SomeFramework"
-  s.frameworks = "Foundation"
 
     s.watchos.frameworks = 'Foundation'
     s.ios.frameworks = 'Foundation'
-
-  #s.ios.library   = "commonCrypto"
-  # s.libraries = "iconv", "xml2"
 
 
   # ――― Project Settings ――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -133,10 +125,11 @@ Pod::Spec.new do |s|
   #  where they will only apply to your library. If you depend on other Podspecs
   #  you can include multiple dependencies to ensure it works.
 
-  s.requires_arc = true
+    s.requires_arc = true
 
-  # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-  s.dependency "AFNetworking", "~> 2.5"
-  s.dependency 'Utils', '~> 1.0.0'
+    s.watchos.dependency "AFNetworking", "~> 2.5"
+    s.ios.dependency "AFNetworking", "~> 2.5"
+    s.watchos.dependency 'Utils', '~> 1.0.3'
+    s.ios.dependency 'Utils', '~> 1.0.3'
 
 end
