@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "1.0.17"
+  s.version      = "1.0.18"
   s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
@@ -64,7 +64,6 @@ Pod::Spec.new do |s|
   #  the deployment target. You can optionally include the target after the platform.
   #
 
-# s.platform     = :ios
     s.watchos.deployment_target = "2.0"
     s.ios.deployment_target = "7.0"
 
@@ -113,7 +112,6 @@ Pod::Spec.new do |s|
   #  the lib prefix of their name.
   #
 
-  # s.framework  = "SomeFramework"
 
     s.watchos.frameworks = 'Foundation'
     s.ios.frameworks = 'Foundation'
@@ -125,11 +123,11 @@ Pod::Spec.new do |s|
   #  where they will only apply to your library. If you depend on other Podspecs
   #  you can include multiple dependencies to ensure it works.
 
-    s.requires_arc = true
+#s.requires_arc = true
 
-    s.watchos.dependency "AFNetworking", "~> 2.5"
-    s.ios.dependency "AFNetworking", "~> 2.5"
     s.watchos.dependency 'Utils', '~> 1.0.3'
+    s.watchos.dependency "AFNetworking", "~> 2.5"
     s.ios.dependency 'Utils', '~> 1.0.3'
+    s.ios.dependency "AFNetworking", "~> 2.5"
 
 end
