@@ -66,11 +66,14 @@ static inline NSString * AFPlainTextSignature(NSString *consumerSecret, NSString
 }
 
 
-static NSString * AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(NSString *string, NSStringEncoding encoding) {
-    static NSString * const kAFCharactersToBeEscaped = @":/?&=;+!@#$()',*";
-    static NSString * const kAFCharactersToLeaveUnescaped = @".";
+static NSString * AFPercentEscapedStringFromString(NSString *string) {
+    static NSString * const kAFCharactersGeneralDelimitersToEncode = @":#[]@"; // does not include "?" or "/" due to RFC 3986 - Section 3.4
+    static NSString * const kAFCharactersSubDelimitersToEncode = @"!$&'()*+,;=";
     
-    return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)string, (__bridge CFStringRef)kAFCharactersToLeaveUnescaped, (__bridge CFStringRef)kAFCharactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding));
+    NSMutableCharacterSet * allowedCharacterSet = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
+    [allowedCharacterSet removeCharactersInString:[kAFCharactersGeneralDelimitersToEncode stringByAppendingString:kAFCharactersSubDelimitersToEncode]];
+    
+    return [string stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacterSet];
 }
 
 
@@ -174,11 +177,12 @@ NSArray * QueryStringPairsFromKeyAndValue(NSString *key, id value) {
 NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _HeaderParameters, NSString *consumerSecret, NSString *tokenSecret, NSStringEncoding stringEncoding) {
     NSString *secret = tokenSecret ? tokenSecret : @"";
     
-    NSString *secretString = [NSString stringWithFormat:@"%@&%@", AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(consumerSecret, stringEncoding), AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(secret, stringEncoding)];
+    
+    NSString *secretString = [NSString stringWithFormat:@"%@&%@", AFPercentEscapedStringFromString(consumerSecret), AFPercentEscapedStringFromString(secret)];
     NSData *secretStringData = [secretString dataUsingEncoding:stringEncoding];
     
-    NSString *queryString = AFPercentEscapedQueryStringPairMemberFromStringWithEncoding([[[[url query] componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"&"], stringEncoding);
-    NSString *requestString = [NSString stringWithFormat:@"%@&%@", method, AFPercentEscapedQueryStringPairMemberFromStringWithEncoding([[url absoluteString] componentsSeparatedByString:@"?"][0], stringEncoding)];
+    NSString *queryString = AFPercentEscapedStringFromString([[[[url query] componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"&"]);
+    NSString *requestString = [NSString stringWithFormat:@"%@&%@", method, AFPercentEscapedStringFromString([[url absoluteString] componentsSeparatedByString:@"?"][0])];
     
     if ([queryString length] > 0)
     {
@@ -196,10 +200,10 @@ NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _Heade
         {
             if (i > 0)
             {
-                requestString = [requestString stringByAppendingString:AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(@"&", stringEncoding)];
+                requestString = [requestString stringByAppendingString:AFPercentEscapedStringFromString(@"&")];
             }
             
-            requestString = [requestString stringByAppendingString:AFPercentEscapedQueryStringPairMemberFromStringWithEncoding((NSString*)anObj, stringEncoding)];
+            requestString = [requestString stringByAppendingString:AFPercentEscapedStringFromString((NSString*)anObj)];
             
             i++;
         }
