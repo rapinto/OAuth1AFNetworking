@@ -27,11 +27,52 @@
 
 
 
+typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
+    AFPlainTextSignatureMethod = 1,
+    AFHMACSHA1SignatureMethod = 2,
+};
+
+
+@class AFOAuth1Token;
+
+
+
+
 #import "AFURLRequestSerialization.h"
 
 
 
 @interface OAuth1RequestSerialization : AFHTTPRequestSerializer
+
+
+
+@property (nonatomic, assign) AFOAuthSignatureMethod signatureMethod;
+@property (readonly, nonatomic, copy) NSString *key;
+@property (readonly, nonatomic, copy) NSString *secret;
+@property (nonatomic, strong) AFOAuth1Token *accessToken;
+@property (nonatomic, copy) NSString *realm;
+
+
+
+#pragma mark - Object Life Cycle Methods
+- (id)initWithKey:(NSString *)clientID
+           secret:(NSString *)secret;
+
+
+
+#pragma mark - Private Methods
+- (NSString *)authorizationHeaderForMethod:(NSString *)method
+                                      path:(NSString *)path
+                                parameters:(NSDictionary *)parameters;
+- (NSDictionary *)OAuthParameters;
+
+
+
+
+#pragma mark - Public Methods
+- (void)clearAccessToken;
+- (void)generateAccessTokenWithKey:(NSString*)key
+                             token:(NSString*)token;
 
 
 

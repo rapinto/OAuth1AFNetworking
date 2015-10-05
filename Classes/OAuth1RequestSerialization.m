@@ -28,11 +28,275 @@
 
 
 #import "OAuth1RequestSerialization.h"
-#import "OAuth1OperationManager.h"
+#import "QueryStringPair.h"
+#import <CommonCrypto/CommonCrypto.h>
+#import "Utils.h"
+#import "AFOAuth1Token.h"
+
+
+
+static NSString * const kAFOAuth1Version = @"1.0";
+
+
+static inline NSString * NSStringFromAFOAuthSignatureMethod(AFOAuthSignatureMethod signatureMethod) {
+    switch (signatureMethod) {
+        case AFPlainTextSignatureMethod:
+            return @"PLAINTEXT";
+        case AFHMACSHA1SignatureMethod:
+            return @"HMAC-SHA1";
+        default:
+            return nil;
+    }
+}
+
+
+static inline NSString * AFNounce() {
+    CFUUIDRef uuid = CFUUIDCreate(NULL);
+    CFStringRef string = CFUUIDCreateString(NULL, uuid);
+    CFRelease(uuid);
+    
+    return (NSString *)CFBridgingRelease(string);
+}
+
+
+static inline NSString * AFPlainTextSignature(NSString *consumerSecret, NSString *tokenSecret, NSStringEncoding stringEncoding) {
+    NSString *secret = tokenSecret ? tokenSecret : @"";
+    NSString *signature = [NSString stringWithFormat:@"%@&%@", consumerSecret, secret];
+    return signature;
+}
+
+
+static NSString * AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(NSString *string, NSStringEncoding encoding) {
+    static NSString * const kAFCharactersToBeEscaped = @":/?&=;+!@#$()',*";
+    static NSString * const kAFCharactersToLeaveUnescaped = @".";
+    
+    return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)string, (__bridge CFStringRef)kAFCharactersToLeaveUnescaped, (__bridge CFStringRef)kAFCharactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding));
+}
+
+
+
+@interface OAuth1RequestSerialization ()
+@property (readwrite, nonatomic, copy) NSString *key;
+@property (readwrite, nonatomic, copy) NSString *secret;
+
+
+#pragma mark - Private Methods
+- (NSString *)authorizationHeaderForMethod:(NSString *)method
+                                      path:(NSString *)path
+                                parameters:(NSDictionary *)parameters;
+- (NSDictionary *)OAuthParameters;
+
+@end
+
 
 
 
 @implementation OAuth1RequestSerialization
+
+
+
+#pragma mark -
+#pragma mark Object Life Cycle Methods
+
+
+
+- (id)initWithKey:(NSString *)clientID
+           secret:(NSString *)secret
+{
+    self = [self init];
+    
+    if (self)
+    {
+        self.key = clientID;
+        self.secret = secret;
+        self.signatureMethod = AFHMACSHA1SignatureMethod;
+        self.stringEncoding = NSUTF8StringEncoding;
+    }
+    
+    return self;
+}
+
+
+
+
+#pragma mark -
+#pragma mark oAuth Methods
+
+
+
+- (NSDictionary *)OAuthParameters
+{
+    NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
+    parameters[@"oauth_version"] = kAFOAuth1Version;
+    parameters[@"oauth_signature_method"] = NSStringFromAFOAuthSignatureMethod(self.signatureMethod);
+    parameters[@"oauth_consumer_key"] = self.key;
+    parameters[@"oauth_timestamp"] = [@(floor([[NSDate date] timeIntervalSince1970])) stringValue];
+    parameters[@"oauth_nonce"] = AFNounce();
+    
+    if (self.realm) {
+        parameters[@"realm"] = self.realm;
+    }
+    
+    return parameters;
+}
+
+
+NSArray * QueryStringPairsFromKeyAndValue(NSString *key, id value) {
+    NSMutableArray *mutableQueryStringComponents = [NSMutableArray array];
+    
+    if ([value isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *dictionary = value;
+        // Sort dictionary keys to ensure consistent ordering in query string, which is important when deserializing potentially ambiguous sequences, such as an array of dictionaries
+        NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"description" ascending:YES selector:@selector(caseInsensitiveCompare:)];
+        [[[dictionary allKeys] sortedArrayUsingDescriptors:[NSArray arrayWithObject:sortDescriptor]] enumerateObjectsUsingBlock:^(id nestedKey, __unused NSUInteger idx, __unused BOOL *stop) {
+            id nestedValue = [dictionary objectForKey:nestedKey];
+            if (nestedValue) {
+                [mutableQueryStringComponents addObjectsFromArray:QueryStringPairsFromKeyAndValue((key ? [NSString stringWithFormat:@"%@[%@]", key, nestedKey] : nestedKey), nestedValue)];
+            }
+        }];
+    } else if ([value isKindOfClass:[NSArray class]]) {
+        NSArray *array = value;
+        [array enumerateObjectsUsingBlock:^(id nestedValue, __unused NSUInteger idx, __unused BOOL *stop) {
+            [mutableQueryStringComponents addObjectsFromArray:QueryStringPairsFromKeyAndValue([NSString stringWithFormat:@"%@[]", key], nestedValue)];
+        }];
+    } else if ([value isKindOfClass:[NSSet class]]) {
+        NSSet *set = value;
+        [set enumerateObjectsUsingBlock:^(id obj, BOOL *stop) {
+            [mutableQueryStringComponents addObjectsFromArray:QueryStringPairsFromKeyAndValue(key, obj)];
+        }];
+    } else {
+        [mutableQueryStringComponents addObject:[[QueryStringPair alloc] initWithField:key value:value]];
+    }
+    return mutableQueryStringComponents;
+}
+
+
+NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _HeaderParameters, NSString *consumerSecret, NSString *tokenSecret, NSStringEncoding stringEncoding) {
+    NSString *secret = tokenSecret ? tokenSecret : @"";
+    
+    NSString *secretString = [NSString stringWithFormat:@"%@&%@", AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(consumerSecret, stringEncoding), AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(secret, stringEncoding)];
+    NSData *secretStringData = [secretString dataUsingEncoding:stringEncoding];
+    
+    NSString *queryString = AFPercentEscapedQueryStringPairMemberFromStringWithEncoding([[[[url query] componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"&"], stringEncoding);
+    NSString *requestString = [NSString stringWithFormat:@"%@&%@", method, AFPercentEscapedQueryStringPairMemberFromStringWithEncoding([[url absoluteString] componentsSeparatedByString:@"?"][0], stringEncoding)];
+    
+    if ([queryString length] > 0)
+    {
+        requestString = [requestString stringByAppendingFormat:@"&%@", queryString];
+    }
+    
+    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(_HeaderParameters, stringEncoding) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    
+    requestString = [requestString stringByAppendingString:@"&"];
+    
+    int i = 0;
+    for (id anObj in sortedComponents)
+    {
+        if ([anObj isKindOfClass:[NSString class]])
+        {
+            if (i > 0)
+            {
+                requestString = [requestString stringByAppendingString:AFPercentEscapedQueryStringPairMemberFromStringWithEncoding(@"&", stringEncoding)];
+            }
+            
+            requestString = [requestString stringByAppendingString:AFPercentEscapedQueryStringPairMemberFromStringWithEncoding((NSString*)anObj, stringEncoding)];
+            
+            i++;
+        }
+    }
+    
+    NSData *requestStringData = [requestString dataUsingEncoding:stringEncoding];
+    
+    uint8_t digest[CC_SHA1_DIGEST_LENGTH];
+    CCHmacContext cx;
+    CCHmacInit(&cx, kCCHmacAlgSHA1, [secretStringData bytes], [secretStringData length]);
+    CCHmacUpdate(&cx, [requestStringData bytes], [requestStringData length]);
+    CCHmacFinal(&cx, digest);
+    
+    return [Utils AFEncodeBase64WithData:[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH]];
+}
+
+
+NSArray * QueryStringPairsFromDictionary(NSDictionary *dictionary) {
+    return QueryStringPairsFromKeyAndValue(nil, dictionary);
+}
+
+
+NSString * AFQueryStringFromParametersWithEncoding(NSDictionary *parameters, NSStringEncoding stringEncoding) {
+    NSMutableArray *mutablePairs = [NSMutableArray array];
+    for (QueryStringPair *pair in QueryStringPairsFromDictionary(parameters)) {
+        if (![pair.field isEqualToString:@"realm"])
+        {
+            [mutablePairs addObject:[pair URLEncodedStringValueWithEncoding:stringEncoding]];
+        }
+        else
+        {
+            [mutablePairs addObject:[NSString stringWithFormat:@"%@=%@", pair.field, pair.value]];
+        }
+    }
+    
+    return [mutablePairs componentsJoinedByString:@"&"];
+}
+
+
+- (NSString *)authorizationHeaderForMethod:(NSString *)method
+                                      path:(NSString *)path
+                                parameters:(NSDictionary *)parameters
+{
+    static NSString * const kAFOAuth1AuthorizationFormatString = @"OAuth %@";
+    
+    NSMutableDictionary *mutableParameters = parameters ? [parameters mutableCopy] : [NSMutableDictionary dictionary];
+    NSMutableDictionary *mutableAuthorizationParameters = [NSMutableDictionary dictionary];
+    
+    if (self.key && self.secret) {
+        [mutableAuthorizationParameters addEntriesFromDictionary:[self OAuthParameters]];
+        if (self.accessToken) {
+            mutableAuthorizationParameters[@"oauth_token"] = self.accessToken.key;
+        }
+    }
+    
+    [mutableParameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        if ([key isKindOfClass:[NSString class]] && [key hasPrefix:@"oauth_"]) {
+            mutableAuthorizationParameters[key] = obj;
+        }
+    }];
+    
+    [mutableParameters addEntriesFromDictionary:mutableAuthorizationParameters];
+    mutableAuthorizationParameters[@"oauth_signature"] = [self OAuthSignatureForMethod:method path:path parameters:mutableParameters token:self.accessToken];
+    
+    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(mutableAuthorizationParameters, self.stringEncoding) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    
+    NSMutableArray *mutableComponents = [NSMutableArray array];
+    for (NSString *component in sortedComponents) {
+        NSArray *subcomponents = [component componentsSeparatedByString:@"="];
+        if ([subcomponents count] == 2) {
+            [mutableComponents addObject:[NSString stringWithFormat:@"%@=\"%@\"", subcomponents[0], subcomponents[1]]];
+        }
+    }
+    
+    return [NSString stringWithFormat:kAFOAuth1AuthorizationFormatString, [mutableComponents componentsJoinedByString:@","]];
+}
+
+
+- (NSString *)OAuthSignatureForMethod:(NSString *)method
+                                 path:(NSString *)path
+                           parameters:(NSDictionary *)_Parameters
+                                token:(AFOAuth1Token *)token
+{
+    NSURL* lURL = [NSURL URLWithString:path];
+    
+    NSString *tokenSecret = token ? token.secret : nil;
+    
+    switch (self.signatureMethod)
+    {
+        case AFPlainTextSignatureMethod:
+            return AFPlainTextSignature(self.secret, tokenSecret, self.stringEncoding);
+        case AFHMACSHA1SignatureMethod:
+            return AFHMACSHA1Signature(lURL, method, _Parameters, self.secret, tokenSecret, self.stringEncoding);
+        default:
+            return nil;
+    }
+}
 
 
 
@@ -52,9 +316,9 @@
                                                               error:error];
     
     
-    NSString* oAuthStr = [[OAuth1OperationManager sharedInstance] authorizationHeaderForMethod:method
-                                                                                          path:URLString
-                                                                                    parameters:parameters];
+    NSString* oAuthStr = [self authorizationHeaderForMethod:method
+                                                       path:URLString
+                                                 parameters:parameters];
     [lMutableRequest setValue:oAuthStr forHTTPHeaderField:@"Authorization"];
 
     
@@ -75,14 +339,42 @@
                                                        constructingBodyWithBlock:block
                                                                            error:error];
     
-    NSString* oAuthStr = [[OAuth1OperationManager sharedInstance] authorizationHeaderForMethod:method
-                                                                                          path:URLString
-                                                                                    parameters:parameters];
+    NSString* oAuthStr = [self authorizationHeaderForMethod:method
+                                                       path:URLString
+                                                 parameters:parameters];
         [lMutableRequest setValue:oAuthStr forHTTPHeaderField:@"Authorization"];
     
     
     return lMutableRequest;
 }
+
+
+
+#pragma mark -
+#pragma mark Public Methods
+
+
+
+- (void)clearAccessToken
+{
+    self.accessToken = nil;
+}
+
+
+- (void)generateAccessTokenWithKey:(NSString*)key
+                             token:(NSString*)token
+{
+    if ([key length] > 0 && [token length] > 0)
+    {
+        AFOAuth1Token* lOAuth1Token = [[AFOAuth1Token alloc] initWithKey:key
+                                                                  secret:token
+                                                                 session:nil
+                                                              expiration:nil
+                                                               renewable:YES];
+        self.accessToken = lOAuth1Token;
+    }
+}
+
 
 
 
