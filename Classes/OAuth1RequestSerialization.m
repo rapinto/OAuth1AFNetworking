@@ -59,7 +59,7 @@ static inline NSString * AFNounce() {
 }
 
 
-static inline NSString * AFPlainTextSignature(NSString *consumerSecret, NSString *tokenSecret, NSStringEncoding stringEncoding) {
+static inline NSString * AFPlainTextSignature(NSString *consumerSecret, NSString *tokenSecret) {
     NSString *secret = tokenSecret ? tokenSecret : @"";
     NSString *signature = [NSString stringWithFormat:@"%@&%@", consumerSecret, secret];
     return signature;
@@ -113,7 +113,6 @@ static NSString * AFPercentEscapedStringFromString(NSString *string) {
         self.key = clientID;
         self.secret = secret;
         self.signatureMethod = AFHMACSHA1SignatureMethod;
-        self.stringEncoding = NSUTF8StringEncoding;
     }
     
     return self;
@@ -174,12 +173,12 @@ NSArray * QueryStringPairsFromKeyAndValue(NSString *key, id value) {
 }
 
 
-NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _HeaderParameters, NSString *consumerSecret, NSString *tokenSecret, NSStringEncoding stringEncoding) {
+NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _HeaderParameters, NSString *consumerSecret, NSString *tokenSecret) {
     NSString *secret = tokenSecret ? tokenSecret : @"";
     
     
     NSString *secretString = [NSString stringWithFormat:@"%@&%@", AFPercentEscapedStringFromString(consumerSecret), AFPercentEscapedStringFromString(secret)];
-    NSData *secretStringData = [secretString dataUsingEncoding:stringEncoding];
+    NSData *secretStringData = [secretString dataUsingEncoding:NSUTF8StringEncoding];
     
     NSString *queryString = AFPercentEscapedStringFromString([[[[url query] componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(compare:)] componentsJoinedByString:@"&"]);
     NSString *requestString = [NSString stringWithFormat:@"%@&%@", method, AFPercentEscapedStringFromString([[url absoluteString] componentsSeparatedByString:@"?"][0])];
@@ -189,7 +188,7 @@ NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _Heade
         requestString = [requestString stringByAppendingFormat:@"&%@", queryString];
     }
     
-    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(_HeaderParameters, stringEncoding) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(_HeaderParameters) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
     
     requestString = [requestString stringByAppendingString:@"&"];
     
@@ -209,7 +208,7 @@ NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _Heade
         }
     }
     
-    NSData *requestStringData = [requestString dataUsingEncoding:stringEncoding];
+    NSData *requestStringData = [requestString dataUsingEncoding:NSUTF8StringEncoding];
     
     uint8_t digest[CC_SHA1_DIGEST_LENGTH];
     CCHmacContext cx;
@@ -226,12 +225,12 @@ NSArray * QueryStringPairsFromDictionary(NSDictionary *dictionary) {
 }
 
 
-NSString * AFQueryStringFromParametersWithEncoding(NSDictionary *parameters, NSStringEncoding stringEncoding) {
+NSString * AFQueryStringFromParametersWithEncoding(NSDictionary *parameters) {
     NSMutableArray *mutablePairs = [NSMutableArray array];
     for (QueryStringPair *pair in QueryStringPairsFromDictionary(parameters)) {
         if (![pair.field isEqualToString:@"realm"])
         {
-            [mutablePairs addObject:[pair URLEncodedStringValueWithEncoding:stringEncoding]];
+            [mutablePairs addObject:[pair URLEncodedStringValue]];
         }
         else
         {
@@ -268,7 +267,7 @@ NSString * AFQueryStringFromParametersWithEncoding(NSDictionary *parameters, NSS
     [mutableParameters addEntriesFromDictionary:mutableAuthorizationParameters];
     mutableAuthorizationParameters[@"oauth_signature"] = [self OAuthSignatureForMethod:method path:path parameters:mutableParameters token:self.accessToken];
     
-    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(mutableAuthorizationParameters, self.stringEncoding) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+    NSArray *sortedComponents = [[AFQueryStringFromParametersWithEncoding(mutableAuthorizationParameters) componentsSeparatedByString:@"&"] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
     
     NSMutableArray *mutableComponents = [NSMutableArray array];
     for (NSString *component in sortedComponents) {
@@ -294,9 +293,9 @@ NSString * AFQueryStringFromParametersWithEncoding(NSDictionary *parameters, NSS
     switch (self.signatureMethod)
     {
         case AFPlainTextSignatureMethod:
-            return AFPlainTextSignature(self.secret, tokenSecret, self.stringEncoding);
+            return AFPlainTextSignature(self.secret, tokenSecret);
         case AFHMACSHA1SignatureMethod:
-            return AFHMACSHA1Signature(lURL, method, _Parameters, self.secret, tokenSecret, self.stringEncoding);
+            return AFHMACSHA1Signature(lURL, method, _Parameters, self.secret, tokenSecret);
         default:
             return nil;
     }

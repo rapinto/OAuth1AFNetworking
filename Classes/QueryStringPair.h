@@ -35,5 +35,5 @@
 
 - (id)initWithField:(id)field value:(id)value;
 
-- (NSString *)URLEncodedStringValueWithEncoding:(NSStringEncoding)stringEncoding;
+- (NSString *)URLEncodedStringValue;
 @end
