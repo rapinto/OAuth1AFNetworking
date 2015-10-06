@@ -1,4 +1,4 @@
-#
+  #
 #  Be sure to run `pod spec lint OAuth1AFNetworking.podspec' to ensure this is a
 #  valid spec and to remove all comments including this before submitting the spec.
 #
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "1.0.23"
+  s.version      = "1.0.24"
   s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
@@ -126,8 +126,8 @@ Pod::Spec.new do |s|
 #s.requires_arc = true
 
     s.watchos.dependency 'Utils', '~> 1.0.3'
-    s.watchos.dependency "AFNetworking", "~> 2.5"
+    s.watchos.dependency "AFNetworking", "~> 2.6"
     s.ios.dependency 'Utils', '~> 1.0.3'
-    s.ios.dependency "AFNetworking", "~> 2.5"
+    s.ios.dependency "AFNetworking", "~> 2.6"
 
 end
