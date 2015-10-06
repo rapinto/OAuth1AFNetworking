@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "1.0.24"
+  s.version      = "1.0.25"
   s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
@@ -126,8 +126,8 @@ Pod::Spec.new do |s|
 #s.requires_arc = true
 
     s.watchos.dependency 'Utils', '~> 1.0.3'
-    s.watchos.dependency "AFNetworking", "~> 2.6"
+    s.watchos.dependency "AFNetworking", "2.6.1"
     s.ios.dependency 'Utils', '~> 1.0.3'
-    s.ios.dependency "AFNetworking", "~> 2.6"
+    s.ios.dependency "AFNetworking", "2.6.1"
 
 end
