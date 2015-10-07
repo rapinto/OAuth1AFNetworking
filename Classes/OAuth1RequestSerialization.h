@@ -27,18 +27,18 @@
 
 
 
-typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
-    AFPlainTextSignatureMethod = 1,
-    AFHMACSHA1SignatureMethod = 2,
-};
+#import "AFURLRequestSerialization.h"
+
 
 
 @class AFOAuth1Token;
 
 
 
-
-#import "AFURLRequestSerialization.h"
+typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
+    AFPlainTextSignatureMethod = 1,
+    AFHMACSHA1SignatureMethod = 2,
+};
 
 
 
