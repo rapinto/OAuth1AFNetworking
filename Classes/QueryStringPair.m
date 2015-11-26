@@ -26,9 +26,13 @@
 // THE SOFTWARE.
 
 
-
 #import "QueryStringPair.h"
 
+
+#if !__has_feature(objc_arc)
+#error QueryStringPair must be built with ARC.
+// You can turn on ARC for only QueryStringPair files by adding -fobjc-arc to the build phase for each of its files.
+#endif
 
 
 static NSString * AFPercentEscapedStringFromString(NSString *string) {

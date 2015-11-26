@@ -26,14 +26,18 @@
 // THE SOFTWARE.
 
 
-
 #import <Foundation/Foundation.h>
 
+
 @interface QueryStringPair : NSObject
+
+
 @property (readwrite, nonatomic, strong) id field;
 @property (readwrite, nonatomic, strong) id value;
 
 - (id)initWithField:(id)field value:(id)value;
 
 - (NSString *)URLEncodedStringValue;
+
+
 @end

@@ -26,13 +26,10 @@
 // THE SOFTWARE.
 
 
-
 #import "AFURLRequestSerialization.h"
 
 
-
 @class AFOAuth1Token;
-
 
 
 typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
@@ -41,9 +38,7 @@ typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
 };
 
 
-
 @interface OAuth1RequestSerialization : AFHTTPRequestSerializer
-
 
 
 @property (nonatomic, assign) AFOAuthSignatureMethod signatureMethod;
@@ -53,11 +48,9 @@ typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
 @property (nonatomic, copy) NSString *realm;
 
 
-
 #pragma mark - Object Life Cycle Methods
 - (id)initWithKey:(NSString *)clientID
            secret:(NSString *)secret;
-
 
 
 #pragma mark - Private Methods
@@ -67,13 +60,9 @@ typedef NS_ENUM(NSUInteger, AFOAuthSignatureMethod) {
 - (NSDictionary *)OAuthParameters;
 
 
-
-
 #pragma mark - Public Methods
 - (void)clearAccessToken;
 - (void)generateAccessTokenWithKey:(NSString*)key
                              token:(NSString*)token;
-
-
 
 @end

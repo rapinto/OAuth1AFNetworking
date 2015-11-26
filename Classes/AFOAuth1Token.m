@@ -26,12 +26,17 @@
 // THE SOFTWARE.
 
 
-
 #import "AFOAuth1Token.h"
 
 
+#if !__has_feature(objc_arc)
+#error AFOAuth1Token must be built with ARC.
+// You can turn on ARC for only AFOAuth1Token files by adding -fobjc-arc to the build phase for each of its files.
+#endif
 
-static NSDictionary * AFParametersFromQueryString(NSString *queryString) {
+
+static NSDictionary * AFParametersFromQueryString(NSString *queryString)
+{
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     if (queryString) {
         NSScanner *parameterScanner = [[NSScanner alloc] initWithString:queryString];
@@ -57,7 +62,8 @@ static NSDictionary * AFParametersFromQueryString(NSString *queryString) {
 }
 
 
-static inline BOOL AFQueryStringValueIsTrue(NSString *value) {
+static inline BOOL AFQueryStringValueIsTrue(NSString *value)
+{
     return value && [[value lowercaseString] hasPrefix:@"t"];
 }
 

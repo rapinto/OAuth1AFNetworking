@@ -26,9 +26,7 @@
 // THE SOFTWARE.
 
 
-
 #import <Foundation/Foundation.h>
-
 
 
 @interface AFOAuth1Token : NSObject  <NSCoding, NSCopying>

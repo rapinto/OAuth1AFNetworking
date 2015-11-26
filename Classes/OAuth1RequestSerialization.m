@@ -26,13 +26,18 @@
 // THE SOFTWARE.
 
 
-
 #import "OAuth1RequestSerialization.h"
-#import "QueryStringPair.h"
+
 #import <CommonCrypto/CommonCrypto.h>
-#import "Utils.h"
+
+#import "QueryStringPair.h"
 #import "AFOAuth1Token.h"
 
+
+#if !__has_feature(objc_arc)
+#error OAuth1RequestSerialization must be built with ARC.
+// You can turn on ARC for only OAuth1RequestSerialization files by adding -fobjc-arc to the build phase for each of its files.
+#endif
 
 
 static NSString * const kAFOAuth1Version = @"1.0";
@@ -53,9 +58,8 @@ static inline NSString * NSStringFromAFOAuthSignatureMethod(AFOAuthSignatureMeth
 static inline NSString * AFNounce() {
     CFUUIDRef uuid = CFUUIDCreate(NULL);
     CFStringRef string = CFUUIDCreateString(NULL, uuid);
-    CFRelease(uuid);
     
-    return (NSString *)CFBridgingRelease(string);
+    return (__bridge_transfer NSString *)string;
 }
 
 
@@ -75,7 +79,6 @@ static NSString * AFPercentEscapedStringFromString(NSString *string) {
     
     return [string stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacterSet];
 }
-
 
 
 @interface OAuth1RequestSerialization ()
@@ -98,6 +101,40 @@ static NSString * AFPercentEscapedStringFromString(NSString *string) {
 
 
 
+#pragma mark - String encoding and conversion
+
+
++ (NSString*)AFEncodeBase64WithData:(NSData*)_Data
+{
+    NSUInteger length = [_Data length];
+    NSMutableData *mutableData = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
+    
+    uint8_t *input = (uint8_t *)[_Data bytes];
+    uint8_t *output = (uint8_t *)[mutableData mutableBytes];
+    
+    for (NSUInteger i = 0; i < length; i += 3) {
+        NSUInteger value = 0;
+        for (NSUInteger j = i; j < (i + 3); j++) {
+            value <<= 8;
+            if (j < length) {
+                value |= (0xFF & input[j]);
+            }
+        }
+        
+        static uint8_t const kAFBase64EncodingTable[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        
+        NSUInteger idx = (i / 3) * 4;
+        output[idx + 0] = kAFBase64EncodingTable[(value >> 18) & 0x3F];
+        output[idx + 1] = kAFBase64EncodingTable[(value >> 12) & 0x3F];
+        output[idx + 2] = (i + 1) < length ? kAFBase64EncodingTable[(value >> 6)  & 0x3F] : '=';
+        output[idx + 3] = (i + 2) < length ? kAFBase64EncodingTable[(value >> 0)  & 0x3F] : '=';
+    }
+    
+    return [[NSString alloc] initWithData:mutableData encoding:NSASCIIStringEncoding];
+}
+
+
+
 #pragma mark -
 #pragma mark Object Life Cycle Methods
 
@@ -117,7 +154,6 @@ static NSString * AFPercentEscapedStringFromString(NSString *string) {
     
     return self;
 }
-
 
 
 
@@ -216,7 +252,7 @@ NSString * AFHMACSHA1Signature(NSURL *url,NSString *method, NSDictionary* _Heade
     CCHmacUpdate(&cx, [requestStringData bytes], [requestStringData length]);
     CCHmacFinal(&cx, digest);
     
-    return [Utils AFEncodeBase64WithData:[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH]];
+    return [OAuth1RequestSerialization AFEncodeBase64WithData:[NSData dataWithBytes:digest length:CC_SHA1_DIGEST_LENGTH]];
 }
 
 

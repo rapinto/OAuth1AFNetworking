@@ -16,8 +16,8 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "OAuth1AFNetworking"
-  s.version      = "2.0.1"
-  s.summary      = "AFNetworking 2.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
+  s.version      = "3.0.0"
+  s.summary      = "AFNetworking 3.0 overlay, based on AFNetworking 1.0 that use OAuth1. "
 
   s.description  = <<-DESC
                    A longer description of OAuth1AFNetworking in Markdown format.
@@ -123,11 +123,7 @@ Pod::Spec.new do |s|
   #  where they will only apply to your library. If you depend on other Podspecs
   #  you can include multiple dependencies to ensure it works.
 
-#s.requires_arc = true
-
-    s.watchos.dependency 'Utils', '~> 1.0.5'
-    s.watchos.dependency "AFNetworking", "2.6.1"
-    s.ios.dependency 'Utils', '~> 1.0.3'
-    s.ios.dependency "AFNetworking", "2.6.1"
+  s.requires_arc = true
+  s.dependency 'AFNetworking', '3.0.0-beta.2'
 
 end
